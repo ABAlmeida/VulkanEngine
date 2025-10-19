@@ -1,0 +1,43 @@
+name: Build and Test VulkanEngine
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  windows-build-and-test:
+    runs-on: windows-latest
+
+    steps:
+      # 1️⃣ Checkout repository
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # 2️⃣ Setup MSVC & Visual Studio environment
+      - name: Setup MSBuild
+        uses: microsoft/setup-msbuild@v1
+
+      # 3️⃣ Configure CMake build directory
+      - name: Configure CMake
+        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug
+
+      # 4️⃣ Build all modules and engine
+      - name: Build project
+        run: cmake --build build --config Debug --parallel
+
+      # 5️⃣ Run all tests using CTest
+      - name: Run Tests
+        working-directory: build
+        run: ctest --output-on-failure --parallel 1
+
+      # 6️⃣ Optional: upload test logs as artifact
+      - name: Upload Test Logs
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-logs
+          path: build/Testing/Temporary/

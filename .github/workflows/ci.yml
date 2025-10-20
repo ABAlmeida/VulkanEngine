@@ -1,43 +1,81 @@
-name: Build and Test VulkanEngine
+name: Cross-Compiler Build and Test VulkanEngine
 
 on:
   push:
-    branches:
-      - main
+    branches: [ main ]
   pull_request:
-    branches:
-      - main
+    branches: [ main ]
 
 jobs:
-  windows-build-and-test:
-    runs-on: windows-latest
+  build-and-test:
+    name: Build (${{ matrix.os }} - ${{ matrix.compiler }} - ${{ matrix.config }})
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, ubuntu-latest]
+        compiler: [msvc, gcc, clang]
+        config: [Debug, Release]
+        exclude:
+          # MSVC only exists on Windows
+          - os: ubuntu-latest
+            compiler: msvc
+          # GCC and Clang not used on Windows
+          - os: windows-latest
+            compiler: gcc
+          - os: windows-latest
+            compiler: clang
 
     steps:
-      # 1️⃣ Checkout repository
+      # 1️⃣ Checkout source
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
-      # 2️⃣ Setup MSVC & Visual Studio environment
-      - name: Setup MSBuild
-        uses: microsoft/setup-msbuild@v1
+      # 2️⃣ Cache CMake build directory
+      - name: Cache CMake Build
+        uses: actions/cache@v4
+        with:
+          path: build
+          key: ${{ runner.os }}-${{ matrix.compiler }}-${{ matrix.config }}-${{ hashFiles('**/CMakeLists.txt') }}
 
-      # 3️⃣ Configure CMake build directory
+      # 3️⃣ Setup compiler toolchain
+      - name: Setup Compiler
+        if: matrix.compiler == 'msvc'
+        uses: microsoft/setup-msbuild@v2
+
+      - name: Setup GCC
+        if: matrix.compiler == 'gcc' && matrix.os == 'ubuntu-latest'
+        run: sudo apt-get update && sudo apt-get install -y g++ make
+
+      - name: Setup Clang
+        if: matrix.compiler == 'clang' && matrix.os == 'ubuntu-latest'
+        run: sudo apt-get update && sudo apt-get install -y clang make
+
+      # 4️⃣ Configure CMake with the correct compiler
       - name: Configure CMake
-        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug
+        run: |
+          if [ "${{ runner.os }}" == "Windows" ]; then
+            cmake -S . -B build -G "Ninja" -DCMAKE_BUILD_TYPE=${{ matrix.config }}
+          elif [ "${{ matrix.compiler }}" == "gcc" ]; then
+            cmake -S . -B build -DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_COMPILER=g++ -DCMAKE_BUILD_TYPE=${{ matrix.config }}
+          else
+            cmake -S . -B build -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_BUILD_TYPE=${{ matrix.config }}
+          fi
 
-      # 4️⃣ Build all modules and engine
-      - name: Build project
-        run: cmake --build build --config Debug --parallel
+      # 5️⃣ Build
+      - name: Build VulkanEngine
+        run: cmake --build build --config ${{ matrix.config }} --parallel
 
-      # 5️⃣ Run all tests using CTest
+      # 6️⃣ Test
       - name: Run Tests
         working-directory: build
-        run: ctest -C Debug --output-on-failure --parallel 1
+        run: ctest -C ${{ matrix.config }} --output-on-failure
 
-      # 6️⃣ Optional: upload test logs as artifact 
+      # 7️⃣ Upload logs if tests fail
       - name: Upload Test Logs
         if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: test-logs
+          name: test-logs-${{ matrix.os }}-${{ matrix.compiler }}-${{ matrix.config }}
           path: build/Testing/Temporary/

@@ -1,7 +1,9 @@
+#include "platform.hpp"
+
 #include <iostream>
 #include <cassert>
 
-extern "C" __declspec(dllimport) void Log(const char* message);
+extern "C" VE_IMPORT void Log(const char* message);
 
 int main() {
     std::cout << "[LoggerTests] Running Logger module test..." << std::endl;

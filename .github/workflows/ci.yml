@@ -16,7 +16,7 @@ jobs:
       matrix:
         os: [windows-latest, ubuntu-latest]
         compiler: [msvc, gcc, clang]
-        config: [Debug, Release]
+        config: [Debug, Release, Final]
         exclude:
           # MSVC only exists on Windows
           - os: ubuntu-latest

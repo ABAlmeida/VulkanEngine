@@ -16,11 +16,19 @@ function(add_engine_module MODULE_NAME)
 	set_target_properties(${MODULE_NAME} PROPERTIES WINDOWS_EXPORT_ALL_SYMBOLS ON)
 
     # 4️ Configuration-based compile flags
-    target_compile_options(${MODULE_NAME} PRIVATE
-        $<$<CONFIG:Debug>:/Zi>
-        $<$<CONFIG:Release>:/O2>
-        $<$<CONFIG:Final>:/O2 /GL>
-    )
+    if(MSVC)
+		target_compile_options(${MODULE_NAME} PRIVATE
+			$<$<CONFIG:Debug>:/Zi>
+			$<$<CONFIG:Release>:/O2>
+			$<$<CONFIG:Final>:/O2 /GL>
+		)
+		elseif(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+			target_compile_options(${MODULE_NAME} PRIVATE
+			$<$<CONFIG:Debug>:-g>
+			$<$<CONFIG:Release>:-O2>
+			$<$<CONFIG:Final>:-O3>
+		)
+	endif()
 
     # 6️ Auto-include tests if they exist
     if(BUILD_TESTS)

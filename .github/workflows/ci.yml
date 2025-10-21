@@ -52,16 +52,21 @@ jobs:
         if: matrix.compiler == 'clang' && matrix.os == 'ubuntu-latest'
         run: sudo apt-get update && sudo apt-get install -y clang make
 
-      # 4️⃣ Configure CMake with the correct compiler
-      - name: Configure CMake
-        run: |
-          if [ "${{ runner.os }}" == "Windows" ]; then
-            cmake -S . -B build -G "Ninja" -DCMAKE_BUILD_TYPE=${{ matrix.config }}
-          elif [ "${{ matrix.compiler }}" == "gcc" ]; then
-            cmake -S . -B build -DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_COMPILER=g++ -DCMAKE_BUILD_TYPE=${{ matrix.config }}
-          else
-            cmake -S . -B build -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_BUILD_TYPE=${{ matrix.config }}
-          fi
+      # 🪟 Windows / MSVC
+      - name: Configure CMake (Windows)
+        if: runner.os == 'Windows'
+        run: cmake -S . -B build -G "Ninja" -DCMAKE_BUILD_TYPE=${{ matrix.config }}
+
+      # 🐧 GCC
+      - name: Configure CMake (GCC)
+        if: runner.os == 'Linux' && matrix.compiler == 'gcc'
+        run: cmake -S . -B build -DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_COMPILER=g++ -DCMAKE_BUILD_TYPE=${{ matrix.config }}
+
+      # 🐧 Clang
+      - name: Configure CMake (Clang)
+        if: runner.os == 'Linux' && matrix.compiler == 'clang'
+        run: cmake -S . -B build -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_BUILD_TYPE=${{ matrix.config }}
+
 
       # 5️⃣ Build
       - name: Build VulkanEngine

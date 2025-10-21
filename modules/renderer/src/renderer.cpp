@@ -1,16 +1,18 @@
+#include "renderer.hpp"
+
 #include <iostream>
 
-extern "C" __declspec(dllexport) void InitRenderer() 
+extern "C" VE_RENDERER_API void InitRenderer()
 {
 	std::cout << "[Renderer] Vulkan renderer initialized." << std::endl;
 }
 
-extern "C" __declspec(dllexport) void RenderFrame() 
+extern "C" VE_RENDERER_API void RenderFrame()
 {
 	std::cout << "[Renderer] Rendering frame..." << std::endl;
 }
 
-extern "C" __declspec(dllexport) void ShutdownRenderer() 
+extern "C" VE_RENDERER_API void ShutdownRenderer()
 {
 	std::cout << "[Renderer] Vulkan renderer shutdown." << std::endl;
 }

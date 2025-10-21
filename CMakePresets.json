@@ -1,40 +1,74 @@
 {
   "version": 3,
+
   "configurePresets": [
     {
-      "name": "vs2022",
-      "displayName": "Visual Studio 2022 (x64)",
+      "name": "vs2026-common",
+      "displayName": "Visual Studio 2022 Common",
       "generator": "Visual Studio 17 2022",
       "architecture": "x64",
       "binaryDir": "${sourceDir}/out/build/${presetName}",
       "cacheVariables": {
-        "CMAKE_CONFIGURATION_TYPES": "Debug;Release",
-        "CMAKE_CXX_STANDARD": "23"
+        "CMAKE_CONFIGURATION_TYPES": "Debug;Release;Final",
+        "CMAKE_CXX_STANDARD": "26"
+      }
+    },
+    {
+      "name": "vs2026-debug",
+      "inherits": "vs2026-common",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug"
+      }
+    },
+    {
+      "name": "vs2026-release",
+      "inherits": "vs2026-common",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release"
+      }
+    },
+    {
+      "name": "vs2026-final",
+      "inherits": "vs2026-common",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Final"
       }
     }
   ],
+
   "buildPresets": [
     {
-      "name": "vs2022-debug",
-      "configurePreset": "vs2022",
+      "name": "Debug",
+      "configurePreset": "vs2026-debug",
       "configuration": "Debug"
     },
     {
-      "name": "vs2022-release",
-      "configurePreset": "vs2022",
+      "name": "Release",
+      "configurePreset": "vs2026-release",
       "configuration": "Release"
+    },
+    {
+      "name": "Final",
+      "configurePreset": "vs2026-final",
+      "configuration": "Final"
     }
   ],
+
   "testPresets": [
     {
-      "name": "vs2022-debug-tests",
-      "configurePreset": "vs2022",
+      "name": "Debug-Tests",
+      "configurePreset": "vs2026-debug",
       "configuration": "Debug"
     },
     {
-      "name": "vs2022-release-tests",
-      "configurePreset": "vs2022",
+      "name": "Release-Tests",
+      "configurePreset": "vs2026-release",
       "configuration": "Release"
+    },
+    {
+      "name": "Final-Tests",
+      "configurePreset": "vs2026-final",
+      "configuration": "Final"
     }
   ]
 }

@@ -1,6 +1,8 @@
+#include "logger.hpp"
+
 #include <iostream>
 
-extern "C" __declspec(dllexport) void Log(const char* message) 
+extern "C" VE_LOGGER_API void Log(const char* message)
 {
 	std::cout << "[Logger] " << message << std::endl;
 }
